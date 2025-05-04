@@ -1,63 +1,64 @@
-import { ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { DarkTheme } from '@/themes/DarkTheme';
-import { DefaultTheme } from '@/themes/DefaultTheme';
-import { useAuth } from '@/hooks/useAuth';
 import { ActivityIndicator, View } from 'react-native';
+import { User } from 'firebase/auth';
+import { auth } from '@/firebase/auth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-  const { isAuthenticated, loading, user } = useAuth();
-  console.log('loaded', user);
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState<User | null>();
+  const router = useRouter();
+  const segments = useSegments();
+  const onAuthStateChanged = (user: User | null) => {
+    console.log('User state changed:', user);
+    setUser(user);
+    if (initializing) {
+      setInitializing(false);
+    }
+  };
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  });
+
+  useEffect(() => {
+    if (initializing) return;
+
+    const [rootSegment, maybeSubRoute] = segments;
+    const isAuthRoute = rootSegment === '(auth)';
+    const isTabRoute = rootSegment === '(tabs)';
+
+    if (user) {
+      // Si ya estamos en un tab, no forzar push
+      if (!isTabRoute) {
+        router.replace('/(tabs)');
+      }
+    } else {
+      // Si ya estamos en auth, dejarlo ahí
+      if (!isAuthRoute) {
+        router.replace('/(auth)/login');
+      }
     }
-  }, [loaded]);
+  }, [initializing, user, segments, router]);
 
-  if (!loaded) {
-    return null;
-  }
-
-  if (loading) {
+  if (initializing) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
-  console.log('isAuthenticated', isAuthenticated);
-  console.log('colorScheme', colorScheme);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen
-          name="(auth)"
-          options={{ headerShown: false }}
-          redirect={isAuthenticated}
-        />
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false }}
-          redirect={!isAuthenticated}
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
   );
 }
