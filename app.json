@@ -1,13 +1,21 @@
 {
   "expo": {
-    "name": "Andarines",
-    "slug": "Andarines",
+    "name": "Notification Routines",
+    "slug": "notification-routines",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "extra": {
+      "firebaseApiKey": "AIzaSyAYKCt9vVHnCVn63SHoeDXwpDzafn5SaTs",
+      "firebaseAuthDomain": "notification-routines.firebaseapp.com",
+      "firebaseProjectId": "notification-routines",
+      "firebaseStorageBucket": "notification-routines.firebasestorage.app",
+      "firebaseMessagingSenderId": "575577584088",
+      "firebaseAppId": "1:575577584088:web:b972d3f8eb109f28a8c2ad",
+    },
     "ios": {
       "supportsTablet": true
     },
