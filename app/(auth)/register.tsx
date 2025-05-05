@@ -84,7 +84,7 @@ export default function Register() {
         )}
       </Pressable>
 
-      <Link href="/(auth)/login" style={styles.link}>
+      <Link href="/(auth)" style={styles.link}>
         ¿Ya tienes cuenta? Inicia Sesión
       </Link>
     </View>

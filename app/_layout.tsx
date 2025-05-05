@@ -15,7 +15,6 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const onAuthStateChanged = (user: User | null) => {
-    console.log('User state changed:', user);
     setUser(user);
     if (initializing) {
       setInitializing(false);
@@ -30,19 +29,16 @@ export default function RootLayout() {
   useEffect(() => {
     if (initializing) return;
 
-    const [rootSegment, maybeSubRoute] = segments;
+    const [rootSegment] = segments;
     const isAuthRoute = rootSegment === '(auth)';
-    const isTabRoute = rootSegment === '(tabs)';
 
     if (user) {
-      // Si ya estamos en un tab, no forzar push
-      if (!isTabRoute) {
+      if (isAuthRoute) {
         router.replace('/(tabs)');
       }
     } else {
-      // Si ya estamos en auth, dejarlo ahí
       if (!isAuthRoute) {
-        router.replace('/(auth)/login');
+        router.replace('/(auth)');
       }
     }
   }, [initializing, user, segments, router]);
@@ -57,8 +53,14 @@ export default function RootLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="routineForm"
+        options={{
+          title: 'Nueva rutina',
+        }}
+      />
     </Stack>
   );
 }
